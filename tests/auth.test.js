@@ -1,9 +1,29 @@
 import request from "supertest";
 import app from "../src/app.js";
+import mongoose from "mongoose";
+import connectDB from "../src/config/db.js";
+
+// make sure JWT secret is set for tests
+process.env.JWT_SECRET = process.env.JWT_SECRET || "testsecret";
 
 describe("Auth Routes", () => {
 
   let token;
+
+  beforeAll(async () => {
+    try {
+      await connectDB();
+      // clear database so tests are idempotent
+      await mongoose.connection.db.dropDatabase();
+    } catch (err) {
+      console.error("Failed to connect to database:", err.message);
+      throw err;
+    }
+  });
+
+  afterAll(async () => {
+    await mongoose.connection.close();
+  });
 
   it("should register a user", async () => {
     const res = await request(app)
