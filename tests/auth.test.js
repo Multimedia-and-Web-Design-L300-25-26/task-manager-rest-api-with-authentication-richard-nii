@@ -52,4 +52,27 @@ describe("Auth Routes", () => {
     token = res.body.token;
   });
 
+  it("should not register user with duplicate email", async () => {
+    const res = await request(app)
+      .post("/api/auth/register")
+      .send({
+        name: "Another User",
+        email: "test@example.com",
+        password: "654321"
+      });
+
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("should not login with wrong password", async () => {
+    const res = await request(app)
+      .post("/api/auth/login")
+      .send({
+        email: "test@example.com",
+        password: "wrongpassword"
+      });
+
+    expect(res.statusCode).toBe(400);
+  });
+
 });

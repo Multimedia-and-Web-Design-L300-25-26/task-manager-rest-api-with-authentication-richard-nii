@@ -84,4 +84,53 @@ describe("Task Routes", () => {
     expect(res.body.message).toBe("Task deleted");
   });
 
+  it("should not delete task that does not exist", async () => {
+    const res = await request(app)
+      .delete("/api/tasks/999999999999999999999999")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.statusCode).toBe(404);
+  });
+
+  it("should not create task without title", async () => {
+    const res = await request(app)
+      .post("/api/tasks")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        description: "No title task"
+      });
+
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("should return empty array for new user with no tasks", async () => {
+    // Register a new user
+    await request(app)
+      .post("/api/auth/register")
+      .send({
+        name: "New User",
+        email: "newuser@example.com",
+        password: "123456"
+      });
+
+    // Login
+    const loginRes = await request(app)
+      .post("/api/auth/login")
+      .send({
+        email: "newuser@example.com",
+        password: "123456"
+      });
+
+    const newToken = loginRes.body.token;
+
+    // Get tasks (should be empty)
+    const res = await request(app)
+      .get("/api/tasks")
+      .set("Authorization", `Bearer ${newToken}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBe(0);
+  });
+
 });
